@@ -5,7 +5,6 @@ buildscript {
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
         classpath "org.asciidoctor:asciidoctor-gradle-plugin:$asciidoctorGradlePlugin"
-        classpath "com.github.erdi:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
     }
 }
 
@@ -14,24 +13,13 @@ version project.projectVersion
 
 apply plugin:"eclipse"
 apply plugin:"idea"
-apply plugin: "com.github.erdi.webdriver-binaries"
-apply from:"https://raw.githubusercontent.com/grails/grails-common-build/v2.0.3/common-docs.gradle"
+apply from:"./gradle/docs.gradle"
 apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.internal.grails-plugin-publish"
+apply plugin:"org.grails.grails-publish"
 
 repositories {
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
-}
-
-configurations {
-    all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details->
-            if (details.requested.group == 'org.seleniumhq.selenium') {
-                details.useVersion(seleniumVersion)
-            }
-        }
-    }
 }
 
 dependencies {
@@ -61,43 +49,16 @@ dependencies {
     testImplementation "org.grails:grails-gorm-testing-support"
     testImplementation "org.grails:grails-web-testing-support"
     testImplementation "org.mockito:mockito-core"
-    testImplementation("org.grails.plugins:geb") {
-        exclude group: 'org.gebish', module: 'geb-spock'
-    }
 
-    testImplementation "org.gebish:geb-spock:$gebVersion"
-
-    testRuntimeOnly "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
-    testRuntimeOnly "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
-    testRuntimeOnly "org.seleniumhq.selenium:selenium-safari-driver:$seleniumSafariDriverVersion"
-
-    testImplementation "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
-
+    integrationTestImplementation testFixtures("org.grails.plugins:geb:5.0.0-SNAPSHOT")
     api "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:$concurrentlinkedhashmapLruVersion"
 }
 
 apply from: rootProject.file('gradle/testVerbose.gradle')
 
-webdriverBinaries {
-    if (!System.getenv().containsKey('CI')) {
-        chromedriver "$chromeDriverVersion"
-        geckodriver "$geckodriverVersion"
-    }
-}
-
-tasks.withType(Test) {
-    systemProperty "geb.env", System.getProperty('geb.env')
-    systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
-    if (!System.getenv().containsKey('CI')) {
-        systemProperty 'webdriver.chrome.driver', System.getProperty('webdriver.chrome.driver')
-        systemProperty 'webdriver.gecko.driver', System.getProperty('webdriver.gecko.driver')
-    } else {
-        systemProperty 'webdriver.chrome.driver', "${System.getenv('CHROMEWEBDRIVER')}/chromedriver"
-        systemProperty 'webdriver.gecko.driver', "${System.getenv('GECKOWEBDRIVER')}/geckodriver"
-    }
-}
+//tasks.withType(Test) {
+//    systemProperty 'grails.geb.recording.mode', 'RECORD_FAILING'
+//}
 
 bootRun {
     jvmArgs(
@@ -111,8 +72,7 @@ bootRun {
 }
 
 grailsPublish {
-    userOrg = 'grails'
-    githubSlug = 'grails/grails-cache'
+    githubSlug = project.githubSlug
     license {
         name = 'Apache-2.0'
     }

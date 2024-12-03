@@ -1,6 +1,6 @@
 <html>
 <head>
-    <meta name="layout" content="grails-cache"/>
+    <meta name="layout" content="main"/>
 </head>
 <body>
 <cache:block ttl="$ttl">
