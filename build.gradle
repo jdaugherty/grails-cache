@@ -96,5 +96,5 @@ jar {
 tasks.named("publishGuide") {
     it.dependsOn = ["compileAstGroovy", "copyAstClasses", "compileGroovy",
                     "compileAstJava", "compileJava", "compileAstJava",
-                    "groovydoc", "processResources", "copyCommands"]
+                    "groovydoc", "processResources", "copyCommands", "copyLocalDocResources"]
 }
