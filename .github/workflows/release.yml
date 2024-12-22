@@ -82,6 +82,11 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
           ref: v${{ needs.publish.outputs.release_version }}
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: '17'
       - name: Nexus Staging Close And Release
         uses: gradle/gradle-build-action@v3
         env:
