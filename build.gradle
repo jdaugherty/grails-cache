@@ -20,6 +20,16 @@ apply plugin:"org.grails.grails-publish"
 repositories {
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
+    if (System.getenv("GITHUB_MAVEN_PASSWORD") && !grailsVersion.endsWith('-SNAPSHOT')) {
+        System.out.println("Adding Grails Core Repo")
+        maven {
+            url = 'https://maven.pkg.github.com/grails/grails-core'
+            credentials {
+                username = 'DOES_NOT_MATTER'
+                password = System.getenv("GITHUB_MAVEN_PASSWORD")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -50,7 +60,7 @@ dependencies {
     testImplementation "org.grails:grails-web-testing-support"
     testImplementation "org.mockito:mockito-core"
 
-    integrationTestImplementation testFixtures("org.grails.plugins:geb:5.0.0-SNAPSHOT")
+    integrationTestImplementation testFixtures("org.grails.plugins:geb")
     api "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:$concurrentlinkedhashmapLruVersion"
 }
 
