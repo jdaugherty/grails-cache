@@ -46,5 +46,3 @@ subprojects {
         }
     }
 }
-
-apply from: rootProject.file("gradle/documentation-config.gradle")

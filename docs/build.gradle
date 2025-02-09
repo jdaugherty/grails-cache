@@ -13,12 +13,15 @@ apply plugin: 'groovy'
 
 dependencies {
     implementation platform("org.grails:grails-bom:$grailsVersion")
+    implementation 'org.apache.groovy:groovy-groovydoc'
+    implementation 'org.apache.groovy:groovy-ant'
     implementation 'org.springframework:spring-core'
 }
 
 tasks.register('resolveSpringVersion') {
     group = 'documentation'
     description = 'Resolve Spring Version from the BOM'
+
     ext.resolved = configurations.compileClasspath
             .resolvedConfiguration
             .resolvedArtifacts
@@ -26,23 +29,59 @@ tasks.register('resolveSpringVersion') {
                 it.moduleVersion.id.group == 'org.springframework' &&
                         it.moduleVersion.id.name.contains('spring-core')
             }.moduleVersion.id.version
+
     logger.lifecycle('Resolved Spring Framework version for Guide links: {}', resolved)
 }
 
+tasks.register('cleanDocs', Delete) {
+    group = 'documentation'
+    delete(project.layout.buildDirectory.dir('docs'))
+}
 
-// TODO: PublishGuide should eventually ensure the build directory exists
-tasks.register('docsBuild') {
-    doFirst {
-        project.layout.buildDirectory.get().asFile.mkdirs()
+tasks.register('aggregateGroovydoc', Groovydoc) {
+    group = 'documentation'
+    description = 'Copies Groovy API Documentation for all supporting projects'
+
+    Set<Project> groovyDocProjects = rootProject.subprojects.findAll {
+        it.name != 'docs' && !it.name.startsWith('example')
     }
-    // Do not cache this task since the directory must exist if publishGuide is going to run
-    outputs.upToDateWhen { false }
+    dependsOn(['cleanDocs'] + groovyDocProjects.collect { ":${it.name}:classes" as String })
+
+    source = groovyDocProjects.collectMany { prj ->
+        def dirs = []
+        // Always include main/groovy.
+        dirs += prj.sourceSets.main.groovy.srcDirs
+
+        // If this subproject defines an “ast” source set, include it.
+        def astSourceSet = prj.sourceSets.findByName('ast')
+        if (astSourceSet != null) {
+            dirs += astSourceSet.groovy.srcDirs
+        }
+        dirs
+    }
+
+    def groovydocClasspath = files(configurations.compileClasspath + groovyDocProjects.configurations.compileClasspath)
+    classpath = groovydocClasspath
+    groovyClasspath = groovydocClasspath
+
+    docTitle = "Grails Cache Plugin - ${project.version}"
+    access = GroovydocAccess.PROTECTED
+    includeAuthor = true
+    includeMainForScripts = false
+    processScripts = false
+
+    destinationDir = project.layout.buildDirectory.dir('docs/api').get().asFile
+
+    doLast { delete(project.layout.buildDirectory.dir('tmp')) }
+
+    inputs.files(source)
+    outputs.dir(destinationDir)
 }
 
 tasks.register('publishGuide', PublishGuide) {
     group = 'documentation'
     description = 'Generate Guide'
-    dependsOn('docsBuild', 'resolveSpringVersion')
+    dependsOn('aggregateGroovydoc', 'resolveSpringVersion')
 
     targetDir = project.layout.buildDirectory.dir('docs').get().asFile
     outputs.dir(targetDir) // ensure gradle understands what this task generates
@@ -77,4 +116,9 @@ tasks.register('publishGuide', PublishGuide) {
         </html>
         '''.stripIndent(8)
     }
+}
+
+tasks.register('docs') {
+    group = 'documentation'
+    dependsOn('aggregateGroovydoc', 'publishGuide')
 }

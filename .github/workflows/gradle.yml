@@ -80,7 +80,7 @@ jobs:
         id: docs
         env:
           GITHUB_MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew docs --refresh-dependencies
+        run: ./gradlew docs:docs --refresh-dependencies
       - name: "📤 Publish docs to Github Pages"
         if: steps.docs.outcome == 'success'
         uses: grails/github-pages-deploy-action@v2
@@ -88,6 +88,6 @@ jobs:
           TARGET_REPOSITORY: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: build/docs
+          FOLDER: docs/build/docs
           COMMIT_EMAIL: grails-build@users.noreply.github.com
           COMMIT_NAME: grails-build
