@@ -1,0 +1,42 @@
+buildscript {
+    repositories {
+        maven { url = 'https://repo.grails.org/grails/core' }
+    }
+    dependencies {
+        classpath platform("org.grails:grails-bom:$grailsVersion")
+        classpath 'org.grails:grails-gradle-plugin'
+    }
+}
+
+version = projectVersion
+group = "org.grails.plugins"
+
+apply plugin: 'groovy'
+apply plugin: 'java-library'
+apply plugin: 'org.grails.grails-plugin'
+
+dependencies {
+    implementation "org.grails:grails-bom:${grailsVersion}"
+
+    api "org.grails:grails-core"
+    api "org.grails:grails-web-boot"
+    api "org.grails:grails-plugin-services"
+
+    api "org.grails.plugins:gsp"
+    api "org.codehaus.gpars:gpars:$gparsVersion"
+    api "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:$concurrentlinkedhashmapLruVersion"
+
+    compileOnly "org.grails:grails-plugin-domain-class"
+
+    console "org.grails:grails-console"
+
+    testImplementation "org.grails:grails-gorm-testing-support"
+    testImplementation "org.grails:grails-web-testing-support"
+    testImplementation "org.spockframework:spock-core", {
+        exclude group: 'org.apache.groovy'
+    }
+    testImplementation "org.mockito:mockito-core" // to allow for correct mocking with Mock()
+}
+
+apply from: rootProject.layout.projectDirectory.file('gradle/java-config.gradle')
+apply from: rootProject.layout.projectDirectory.file('gradle/test-config.gradle')

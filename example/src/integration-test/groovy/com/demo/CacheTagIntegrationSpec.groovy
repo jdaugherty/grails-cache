@@ -2,6 +2,7 @@ package com.demo
 
 import grails.plugin.geb.ContainerGebSpec
 import grails.testing.mixin.integration.Integration
+
 import java.util.concurrent.TimeUnit
 
 @Integration

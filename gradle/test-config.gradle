@@ -27,4 +27,12 @@ tasks.withType(Test) {
             }
         }
     }
+
+    //    systemProperty 'grails.geb.recording.mode', 'RECORD_FAILING'
+}
+
+integrationTest {
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
