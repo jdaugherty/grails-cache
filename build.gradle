@@ -3,108 +3,46 @@ buildscript {
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
-        classpath "org.asciidoctor:asciidoctor-gradle-plugin:$asciidoctorGradlePlugin"
+        classpath platform("org.grails:grails-bom:${grailsVersion}")
+        classpath "org.grails:grails-gradle-plugin"
     }
 }
 
-group "org.grails.plugins"
-version project.projectVersion
-
-apply plugin:"eclipse"
-apply plugin:"idea"
-apply from:"./gradle/docs.gradle"
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-publish"
-
-repositories {
-    mavenCentral()
-    maven { url "https://repo.grails.org/grails/core" }
-    if (System.getenv("GITHUB_MAVEN_PASSWORD") && !grailsVersion.endsWith('-SNAPSHOT')) {
-        System.out.println("Adding Grails Core Repo")
-        maven {
-            url = 'https://maven.pkg.github.com/grails/grails-core'
-            credentials {
-                username = 'DOES_NOT_MATTER'
-                password = System.getenv("GITHUB_MAVEN_PASSWORD")
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url "https://repo.grails.org/grails/core" }
+        if (System.getenv("GITHUB_MAVEN_PASSWORD") && !grailsVersion.endsWith('-SNAPSHOT')) {
+            System.out.println("Adding Grails Core Repo")
+            maven {
+                url = 'https://maven.pkg.github.com/grails/grails-core'
+                credentials {
+                    username = 'DOES_NOT_MATTER'
+                    password = System.getenv("GITHUB_MAVEN_PASSWORD")
+                }
             }
         }
     }
 }
 
-dependencies {
-    api "org.springframework.boot:spring-boot-starter-logging"
-    api "org.springframework.boot:spring-boot-autoconfigure"
-    api "org.grails:grails-core"
-    api "org.springframework.boot:spring-boot-starter-actuator"
-    api "org.springframework.boot:spring-boot-starter-tomcat"
-    api "org.grails:grails-web-boot"
-    api "org.grails:grails-logging"
-    api "org.grails:grails-plugin-rest"
-    api "org.grails:grails-plugin-databinding"
-    api "org.grails:grails-plugin-i18n"
-    api "org.grails:grails-plugin-services"
-    api "org.grails:grails-plugin-url-mappings"
-    api "org.grails:grails-plugin-interceptors"
-    api "org.grails.plugins:async"
-    api "org.grails.plugins:scaffolding"
-    api "org.codehaus.gpars:gpars:$gparsVersion"
-    api "org.grails.plugins:gsp"
+group = "org.grails.plugins"
+version = project.projectVersion
 
-    runtimeOnly "org.grails.plugins:async"
-    console "org.grails:grails-console"
-    profile "org.grails.profiles:web-plugin"
-    compileOnly "org.grails:grails-plugin-services"
-    compileOnly "org.grails:grails-plugin-domain-class"
-    testImplementation "org.grails:grails-gorm-testing-support"
-    testImplementation "org.grails:grails-web-testing-support"
-    testImplementation "org.mockito:mockito-core"
+subprojects {
+    if(project.name == 'plugin') {
+        version = projectVersion
+        group = "org.grails.plugins"
 
-    integrationTestImplementation testFixtures("org.grails.plugins:geb")
-    api "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:$concurrentlinkedhashmapLruVersion"
-}
-
-apply from: rootProject.file('gradle/testVerbose.gradle')
-
-//tasks.withType(Test) {
-//    systemProperty 'grails.geb.recording.mode', 'RECORD_FAILING'
-//}
-
-bootRun {
-    jvmArgs(
-        '-Dspring.output.ansi.enabled=always',
-        '-noverify',
-        '-XX:TieredStopAtLevel=1',
-        '-Xmx1024m')
-    sourceResources sourceSets.main
-    String springProfilesActive = 'spring.profiles.active'
-    systemProperty springProfilesActive, System.getProperty(springProfilesActive)
-}
-
-grailsPublish {
-    githubSlug = project.githubSlug
-    license {
-        name = 'Apache-2.0'
+        apply plugin:"org.grails.grails-publish"
+        grailsPublish {
+            artifactId = 'cache'
+            githubSlug = "grails/grails-cache"
+            license {
+                name = 'Apache-2.0'
+            }
+            title = "Grails Cache Plugin"
+            desc = "Provides AST transformations for caching method calls"
+            developers = [jeffbrown: "Jeff Scott Brown", "puneetbehl": "Puneet Behl"]
+        }
     }
-    title = project.title
-    desc = project.projectDesc
-    developers = [jeffbrown: "Jeff Scott Brown", "puneetbehl": "Puneet Behl"]
-}
-
-integrationTest {
-    testLogging {
-        exceptionFormat = 'full'
-    }
-}
-
-// exclude demo code from jar artifact
-jar {
-    includeEmptyDirs = false
-    exclude 'com/demo/**'
-}
-
-tasks.named("publishGuide") {
-    it.dependsOn = ["compileAstGroovy", "copyAstClasses", "compileGroovy",
-                    "compileAstJava", "compileJava", "compileAstJava",
-                    "groovydoc", "processResources", "copyCommands", "copyLocalDocResources"]
 }

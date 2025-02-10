@@ -18,7 +18,7 @@ class MaxCapacityCacheSpec extends Specification {
     @Unroll
     void "Verify max capacities set for configured caches"() {
         when:
-            GrailsConcurrentLinkedMapCache cache = grailsCacheManager.getCache(cacheName) as GrailsConcurrentLinkedMapCache
+        GrailsConcurrentLinkedMapCache cache = grailsCacheManager.getCache(cacheName) as GrailsConcurrentLinkedMapCache
 
         then:
             cache.capacity == expectedCapacity

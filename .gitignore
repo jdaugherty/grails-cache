@@ -13,7 +13,6 @@ target-eclipse/
 *.zip
 *.sha1
 .DS_Store
-/docs
 plugin.xml
 target
 build
